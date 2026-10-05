@@ -4,9 +4,9 @@ Data: 2026-10-04. PostgreSQL 17 e Liquibase YAML/SQL.
 
 ## Escopo e fontes
 
-A [sprint-1](../expenses-liquibase/changelogs/sprint-1/changelog.yaml) cria 33 tabelas nos schemas `identity`, `household`, `finance` e `income`, com 33 PKs e 88 FKs. Os oito scripts SQL constituem o dicionário de colunas, tipos, nulabilidade, defaults, constraints e índices. Cada tabela tem comentário no catálogo PostgreSQL.
+A [sprint-1](../../expenses-liquibase/changelogs/sprint-1/changelog.yaml) cria 33 tabelas nos schemas `identity`, `household`, `finance` e `income`, com 33 PKs e 88 FKs. Os oito scripts SQL constituem o dicionário de colunas, tipos, nulabilidade, defaults, constraints e índices. Cada tabela tem comentário no catálogo PostgreSQL.
 
-O modelo materializa o [levantamento](Levantamento-Modelagem-Banco-de-Dados.md), o [PRD](PRD.md), o [HLD vigente](HLD.md) e o [FDD de identidade](FDD-Criacao-Usuario-Autenticacao.md). A documentação e o código da POC citados no levantamento orientam a compatibilidade com o legado. A planilha não foi importada nem teve seus dados certificados nesta etapa.
+O modelo materializa o [levantamento](DB-Modelagem.md), o [PRD](../PRD.md), o [HLD vigente](../HLD.md) e o [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao.md). A documentação e o código da POC citados no levantamento orientam a compatibilidade com o legado. A planilha não foi importada nem teve seus dados certificados nesta etapa.
 
 As escolhas abaixo são premissas de implementação da sprint, registradas para revisão; não representam aprovação prévia de todas as decisões de produto. O banco oferece estruturas para os casos de uso, que ainda precisam ser implementados no backend.
 
@@ -14,18 +14,18 @@ As escolhas abaixo são premissas de implementação da sprint, registradas para
 
 | Schema / SQL | Tabelas | Finalidade |
 | --- | --- | --- |
-| `identity` — [002](../expenses-liquibase/changelogs/sprint-1/sql/002-create-identity.sql) | `users` | Perfil interno, e-mail normalizado único e vínculo Cognito. |
+| `identity` — [002](../../expenses-liquibase/changelogs/sprint-1/sql/002-create-identity.sql) | `users` | Perfil interno, e-mail normalizado único e vínculo Cognito. |
 | `identity` — 002 | `login_attempts`, `login_blocks`, `identity_reconciliations` | Falhas de login, bloqueios compartilhados e divergências Cognito/banco. |
 | `identity` — 002 | `idempotency_records`, `audit_logs` | Retry e metadados de identidade. |
-| `household` — [003](../expenses-liquibase/changelogs/sprint-1/sql/003-create-household.sql) | `households`, `household_members`, `household_invitations` | Casa, ciclo de vida, vínculos históricos, papéis e convites. |
+| `household` — [003](../../expenses-liquibase/changelogs/sprint-1/sql/003-create-household.sql) | `households`, `household_members`, `household_invitations` | Casa, ciclo de vida, vínculos históricos, papéis e convites. |
 | `household` — 003 | `idempotency_records`, `audit_logs` | Retry e auditoria da casa. |
-| `finance` — [004](../expenses-liquibase/changelogs/sprint-1/sql/004-create-finance.sql) | `monthly_periods` | Competência, estado, versão de edição, concessão e último fechamento. |
+| `finance` — [004](../../expenses-liquibase/changelogs/sprint-1/sql/004-create-finance.sql) | `monthly_periods` | Competência, estado, versão de edição, concessão e último fechamento. |
 | `finance` — 004 | `expense_categories`, `period_categories`, `expense_entries` | Cadastro, configuração mensal, pagamento por categoria/mês e múltiplos lançamentos. |
 | `finance` — 004 | `period_participants`, `salary_entries` | Responsáveis e salários da competência. |
 | `finance` — 004 | `benefits`, `benefit_priorities`, `benefit_entries`, `period_benefit_priorities` | Cadastro e valores, ordem e prioridades efetivos de cada mês. |
-| `income` — [005](../expenses-liquibase/changelogs/sprint-1/sql/005-create-income.sql) | `income_sources`, `income_entries`, `idempotency_records`, `audit_logs` | Fontes, rendas recorrentes/variáveis, sugestões, retry e auditoria. |
-| `finance` — [006](../expenses-liquibase/changelogs/sprint-1/sql/006-create-closings.sql) | `monthly_period_versions`, `allocation_snapshots` | Snapshot mensal e rateio em relação obrigatória 1:1. |
-| `finance` — [007](../expenses-liquibase/changelogs/sprint-1/sql/007-create-operations.sql) | `migration_records`, `migration_items`, `export_records` | Resultados síncronos por lote, mapa de origem e exportações. |
+| `income` — [005](../../expenses-liquibase/changelogs/sprint-1/sql/005-create-income.sql) | `income_sources`, `income_entries`, `idempotency_records`, `audit_logs` | Fontes, rendas recorrentes/variáveis, sugestões, retry e auditoria. |
+| `finance` — [006](../../expenses-liquibase/changelogs/sprint-1/sql/006-create-closings.sql) | `monthly_period_versions`, `allocation_snapshots` | Snapshot mensal e rateio em relação obrigatória 1:1. |
+| `finance` — [007](../../expenses-liquibase/changelogs/sprint-1/sql/007-create-operations.sql) | `migration_records`, `migration_items`, `export_records` | Resultados síncronos por lote, mapa de origem e exportações. |
 | `finance` — 007 | `entry_revisions`, `idempotency_records`, `audit_logs` | Revisões antes/depois, retry e auditoria financeira. |
 
 Contagem por schema: Identity 6, Household 5, Finance 18, Income 4. O conceito `PaymentStatus` do HLD está representado por `payment_status`, `paid_at` e `paid_by_user_id` em `period_categories`. Indicadores e gráficos são consultas, não tabelas adicionais.
@@ -82,7 +82,7 @@ O snapshot mensal exige objeto JSON com arrays `categories`, `expenses`, `paymen
 
 O banco valida a estrutura externa do JSON e relações entre totais tipados. O backend deve definir/validar o contrato interno versionado: IDs, nomes históricos, entradas, parcelas, abatimentos, prioridades, excedentes e reconciliação com totais. Usar decimal no cálculo e serialização que preserve centavos. Consultar um fechamento antigo usa o resultado armazenado, sem recalcular com algoritmo novo.
 
-O [script 008](../expenses-liquibase/changelogs/sprint-1/sql/008-create-integrity-guards.sql) serializa mudanças de membros e exige administrador ativo por constraint trigger adiada. Casa e primeiro administrador devem ser criados na mesma transação. Transferência de administração é permitida desde que exista administrador ao commit.
+O [script 008](../../expenses-liquibase/changelogs/sprint-1/sql/008-create-integrity-guards.sql) serializa mudanças de membros e exige administrador ativo por constraint trigger adiada. Casa e primeiro administrador devem ser criados na mesma transação. Transferência de administração é permitida desde que exista administrador ao commit.
 
 Dados mensais e inserção de fechamento bloqueiam a linha da casa para leitura compartilhada e a do período para atualização; recusam casa excluída e exigem período `draft`. Esses triggers não autorizam usuários nem comparam/incrementam a versão de edição.
 
@@ -100,6 +100,6 @@ Recuperação/eliminação deve bloquear a casa e verificar prazo na mesma trans
 
 Os rollbacks removem os objetos na ordem inversa, incluindo triggers e FKs cíclicas, sem `CASCADE`. Removem também os dados da sprint; não são um mecanismo de exclusão de casa. Bases compartilhadas evoluem por novos changeSets, preservando checksums dos já aplicados.
 
-O [README](../expenses-liquibase/README.md) documenta conexão local, aplicação, rollback e testes. `tests/validate_schema.py` aplica/reaplica/reverte/recria a sprint num banco temporário do Docker Desktop. Os testes SQL exercitam integridade entre casas/períodos, unicidade, administrador, valores, pagamentos, salários, prioridades, renda, idempotência, fechamento/reabertura/novo fechamento, histórico e índices das FKs.
+O [README](../../expenses-liquibase/README.md) documenta conexão local, aplicação, rollback e testes. `tests/validate_schema.py` aplica/reaplica/reverte/recria a sprint num banco temporário do Docker Desktop. Os testes SQL exercitam integridade entre casas/períodos, unicidade, administrador, valores, pagamentos, salários, prioridades, renda, idempotência, fechamento/reabertura/novo fechamento, histórico e índices das FKs.
 
 Essa validação usa dados sintéticos e não aplica as migrações em `expenses`. Não substitui testes do algoritmo, autorização, concorrência HTTP, concessão de edição, importador, eliminação administrativa e planos com volume real.

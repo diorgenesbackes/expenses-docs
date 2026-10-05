@@ -349,7 +349,7 @@ Decisões pendentes
 - Definir cookies, renovação de sessão, CSRF, CORS e domínios de implantação.
 - Evoluir modelo relacional, índices e precisão monetária por migrações Liquibase
   em YAML/SQL no projeto `expenses-liquibase`; EF Core/Npgsql permanece responsável
-  pelo acesso aos dados. Ver [modelo físico da sprint-1](Modelo-Fisico-Banco-de-Dados.md).
+  pelo acesso aos dados. Ver [modelo físico da sprint-1](db/DB-Modelo-Fisico.md).
 - Definir rotas, domínio público, throttling e integração VPC Link do Gateway.
 - Definir limites de importação/exportação, payloads e timeouts compatíveis
   entre API Gateway, ALB e aplicação.

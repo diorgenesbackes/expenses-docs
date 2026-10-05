@@ -4,7 +4,7 @@ Data: 2026-10-03
 Status: levantamento de requisitos e proposta preliminar; decisões pendentes identificadas.  
 Escopo: backend completo do Contas da Casa / Expenses.
 
-Evolução: a sprint-1 em Liquibase está descrita no [modelo físico](Modelo-Fisico-Banco-de-Dados.md), incluindo o tratamento das decisões D01–D24. Este levantamento preserva as propostas e pendências da etapa original.
+Evolução: a sprint-1 em Liquibase está descrita no [modelo físico](DB-Modelo-Fisico.md), incluindo o tratamento das decisões D01–D24. Este levantamento preserva as propostas e pendências da etapa original.
 
 ## 1. Resultado e fontes
 
@@ -16,15 +16,15 @@ Este documento reúne requisitos confirmados, estruturas propostas e lacunas. Os
 
 | Fonte consultada | Uso no levantamento |
 | --- | --- |
-| [PRD v1.0, 2026-05-30](PRD.md) | Escopo, RF-01 a RF-20, regras de negócio e critérios de aceite. |
-| [HLD v1.1, 2026-10-01](HLD.md) | Arquitetura vigente, schemas, entidades, transações, concorrência e exclusão. |
-| [FDD de criação de usuário e autenticação v1.0](FDD-Criacao-Usuario-Autenticacao.md) | Perfil interno, Cognito, idempotência, bloqueio de login e reconciliação. |
-| [README da POC](../extras/README.md) | Comportamento anterior, dados históricos e persistência em Excel. |
-| [Análise C4](../extras/c4/criacao-usuario-autenticacao-c4.md) e diagramas [C1](../extras/c4/criacao-usuario-autenticacao-c1.puml), [C2](../extras/c4/criacao-usuario-autenticacao-c2.puml), [C3](../extras/c4/criacao-usuario-autenticacao-c3.puml), [C4](../extras/c4/criacao-usuario-autenticacao-c4.puml) | Detalhes complementares da identidade; topologia anterior ao HLD vigente. |
-| [Prompt C4](../extras/06-c4-gernerator.md) e [comando C4](../extras/07-c4-command.md) | Materiais de geração de documentação; não acrescentam requisitos de negócio. |
-| [README do backend](../expenses-service/README.md) e [README do frontend](../expenses-ui/README.md) | Estado inicial dos projetos; não definem o modelo de domínio. |
-| [Código da POC](../extras/app.js), especialmente `createInitialState`, `calculateCommitment` e recorrência | Evidência complementar do cálculo anterior e das limitações dos dados de origem. |
-| [Exportação da POC](../extras/server.py), funções `build_cost_rows` e `build_income_rows` | Estrutura dos dados exportados para as abas da POC. |
+| [PRD v1.0, 2026-05-30](../PRD.md) | Escopo, RF-01 a RF-20, regras de negócio e critérios de aceite. |
+| [HLD v1.1, 2026-10-01](../HLD.md) | Arquitetura vigente, schemas, entidades, transações, concorrência e exclusão. |
+| [FDD de criação de usuário e autenticação v1.0](../fdd/FDD-Criacao-Usuario-Autenticacao.md) | Perfil interno, Cognito, idempotência, bloqueio de login e reconciliação. |
+| [README da POC](../../extras/README.md) | Comportamento anterior, dados históricos e persistência em Excel. |
+| [Análise C4](../../extras/c4/criacao-usuario-autenticacao-c4.md) e diagramas [C1](../../extras/c4/criacao-usuario-autenticacao-c1.puml), [C2](../../extras/c4/criacao-usuario-autenticacao-c2.puml), [C3](../../extras/c4/criacao-usuario-autenticacao-c3.puml), [C4](../../extras/c4/criacao-usuario-autenticacao-c4.puml) | Detalhes complementares da identidade; topologia anterior ao HLD vigente. |
+| [Prompt C4](../../extras/06-c4-gernerator.md) e [comando C4](../../extras/07-c4-command.md) | Materiais de geração de documentação; não acrescentam requisitos de negócio. |
+| [README do backend](../../expenses-service/README.md) e [README do frontend](../../expenses-ui/README.md) | Estado inicial dos projetos; não definem o modelo de domínio. |
+| [Código da POC](../../extras/app.js), especialmente `createInitialState`, `calculateCommitment` e recorrência | Evidência complementar do cálculo anterior e das limitações dos dados de origem. |
+| [Exportação da POC](../../extras/server.py), funções `build_cost_rows` e `build_income_rows` | Estrutura dos dados exportados para as abas da POC. |
 
 Também foram conferidos os projetos .NET e o ponto de entrada da API. Atualmente há a estrutura em .NET 10 e o health check, sem configuração de EF Core/Npgsql, entidades de negócio ou migrations nos arquivos examinados. O README do backend ainda descreve somente a API e precisa ser atualizado em uma etapa própria.
 

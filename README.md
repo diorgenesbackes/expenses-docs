@@ -1,7 +1,7 @@
 # Documentação do Expenses
 
-Este diretório reúne requisitos, arquitetura, especificações de funcionalidades e
-modelagem do banco. As instruções para executar o projeto ficam no
+Este diretório reúne requisitos, arquitetura, especificações de funcionalidades,
+modelagem do banco e guidelines de desenvolvimento. As instruções para executar o projeto ficam no
 [guia de infraestrutura local](../expenses-infrastructure/README.md).
 
 ## Índice e ordem de leitura
@@ -13,6 +13,10 @@ modelagem do banco. As instruções para executar o projeto ficam no
 | [FDD de criação de usuário e autenticação](fdd/FDD-Criacao-Usuario-Autenticacao.md) | Consultar a especificação detalhada da funcionalidade de identidade. |
 | [Levantamento para modelagem](db/DB-Modelagem.md) | Consultar os requisitos e as propostas originais para o banco. |
 | [Modelo físico — sprint-1](db/DB-Modelo-Fisico.md) | Entender o modelo implementado e a relação com os scripts SQL. |
+| [Guidelines de desenvolvimento](guidelines/README.md) | Consultar princípios comuns, padrões de backend, frontend e Liquibase, checklists e fontes pesquisadas. |
+| [Contratos de APIs síncronas](guidelines/API-SINCRONA.md) | Padronizar requests, responses, headers, paginação, erros e idempotência. |
+| [Observabilidade](guidelines/OBSERVABILIDADE.md) | Padronizar logs, correlação, métricas, tracing, dashboards e alertas. |
+| [Git Flow](guidelines/GIT-FLOW.md) | Definir branches, promoção seletiva, commits, PRs, releases e hotfixes a partir do documento-base fornecido. |
 
 O levantamento registra o estado e as propostas da etapa em que foi produzido;
 o modelo físico descreve a implementação da sprint-1. A documentação de requisitos
@@ -24,6 +28,7 @@ o comportamento disponível, consulte o código e os READMEs dos projetos.
 - `PRD.md` e `HLD.md`: documentos gerais do produto e da arquitetura.
 - `fdd/`: especificações de funcionalidades, com nomes `FDD-<Funcionalidade>.md`.
 - `db/`: documentos de banco, com nomes `DB-<Assunto>.md`.
+- `guidelines/`: regras de desenvolvimento e revisão, exemplos e referências, com distinção entre práticas atuais e adoção futura.
 
 Ao adicionar um documento, inclua-o neste índice. Os links são relativos ao arquivo
 que os contém; ao mover ou renomear arquivos, atualize também suas referências.

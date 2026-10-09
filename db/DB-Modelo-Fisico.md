@@ -6,7 +6,7 @@ Data: 2026-10-04. PostgreSQL 17 e Liquibase YAML/SQL.
 
 A [sprint-1](../../expenses-liquibase/changelogs/sprint-1/changelog.yaml) cria 33 tabelas nos schemas `identity`, `household`, `finance` e `income`, com 33 PKs e 88 FKs. Os oito scripts SQL constituem o dicionário de colunas, tipos, nulabilidade, defaults, constraints e índices. Cada tabela tem comentário no catálogo PostgreSQL.
 
-O modelo materializa o [levantamento](DB-Modelagem.md), o [PRD](../PRD.md), o [HLD vigente](../HLD.md) e o [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao.md). A documentação e o código da POC citados no levantamento orientam a compatibilidade com o legado. A planilha não foi importada nem teve seus dados certificados nesta etapa.
+O modelo materializa o [levantamento](DB-Modelagem.md), o [PRD](../PRD.md), o [HLD vigente](../HLD.md) e o [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao/FDD-Criacao-Usuario-Autenticacao.md). A documentação e o código da POC citados no levantamento orientam a compatibilidade com o legado. A planilha não foi importada nem teve seus dados certificados nesta etapa.
 
 As escolhas abaixo são premissas de implementação da sprint, registradas para revisão; não representam aprovação prévia de todas as decisões de produto. O banco oferece estruturas para os casos de uso, que ainda precisam ser implementados no backend.
 
@@ -103,3 +103,40 @@ Os rollbacks removem os objetos na ordem inversa, incluindo triggers e FKs cícl
 O [README](../../expenses-liquibase/README.md) documenta conexão local, aplicação, rollback e testes. `tests/validate_schema.py` aplica/reaplica/reverte/recria a sprint num banco temporário do Docker Desktop. Os testes SQL exercitam integridade entre casas/períodos, unicidade, administrador, valores, pagamentos, salários, prioridades, renda, idempotência, fechamento/reabertura/novo fechamento, histórico e índices das FKs.
 
 Essa validação usa dados sintéticos e não aplica as migrações em `expenses`. Não substitui testes do algoritmo, autorização, concorrência HTTP, concessão de edição, importador, eliminação administrativa e planos com volume real.
+
+
+## Incremento sprint-2 — cadastro (2026-10-07)
+
+O changeset `sprint-2-001` adiciona `identity.registration_operations`, elevando
+o total para 34 tabelas e nove changesets; preserva a sprint-1 aplicada.
+O [SQL versionado](../../expenses-liquibase/changelogs/sprint-2/sql/001-create-registrations.sql)
+é a referência de campos e constraints.
+
+A operação usa UUID, datas, e-mail normalizado, FK única para idempotência,
+correlação, etapa, username/sub externos quando conhecidos, FK para perfil
+concluído e versão concorrente. Índice único parcial reserva o e-mail durante
+operações ativas/incertas. Checks vinculam conclusão ao perfil e exigem principal
+conhecido nas etapas apropriadas. Não há senha, tokens ou payload do provedor.
+
+A gravação de perfil, auditoria, conclusão e resultado de idempotência é uma
+transação local. Chamadas Cognito ocorrem fora de transações. A compensação
+não apaga principal em commit incerto. [Operação e recuperação](../fdd/FDD-Criacao-Usuario-Autenticacao/4-operacao.md).
+Rollback da sprint-2 descarta o diário: preservar o incremento em reversões da
+aplicação com dados. Testes cobrem upgrade com usuário anterior e rollback/reaplicação.
+
+
+## Incremento sprint-3 — sessões (2026-10-07)
+
+`sprint-3-001` cria `identity.sessions` e `identity.login_guards`; total de **36
+tabelas e dez changesets**. `login_attempts.ip_hash` passa a nullable sem apagar
+histórico, permitindo a política aprovada de bloqueio somente por e-mail.
+
+Sessions contém UUID, FK para usuário, datas, hashes de access/refresh, estado
+active/refreshing/revoked e proprietário de renovação; não persiste credenciais.
+Login_guards usa HMAC de e-mail como PK e uma concessão curta por proprietário.
+Chamadas ao Cognito ocorrem fora de transações; atualizações condicionais protegem
+concorrência e logout. Revogação e auditoria são atômicas. SQL versionado é a
+referência de constraints/índices. [Operação e recuperação](../fdd/FDD-Criacao-Usuario-Autenticacao/2-desenvolvimento.md#login-e-sessoes-e3-e4).
+
+Rollback descarta sessions/guards e conserva a nulabilidade de ip_hash para não
+fabricar dados nem eliminar histórico. Preserve o schema em reversões de aplicação.

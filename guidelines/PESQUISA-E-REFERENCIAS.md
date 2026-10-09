@@ -24,7 +24,7 @@ A análise não é benchmark, auditoria de segurança, certificação de acessib
 
 | Evidência | Decisão orientada por ela |
 | --- | --- |
-| [HLD](../HLD.md) e [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao.md) | Monólito síncrono, módulos internos, Cognito pelo backend e sessão por cookies. |
+| [HLD](../HLD.md) e [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao/FDD-Criacao-Usuario-Autenticacao.md) | Monólito síncrono, módulos internos, Cognito pelo backend e sessão por cookies. |
 | [Modelo físico](../db/DB-Modelo-Fisico.md) e [changelog da sprint-1](../../expenses-liquibase/changelogs/sprint-1/changelog.yaml) | Precisão financeira, FKs compostas, snapshots, concorrência e histórico de migrações. |
 | [Program.cs](../../expenses-service/Expenses.Api/Program.cs) e [UserRepository.cs](../../expenses-service/Expenses.Infrastructure/Repository/UserRepository.cs) | DI scoped, endpoints de diagnóstico, EF Core e paginação implementada. |
 | [package.json](../../expenses-ui/package.json) e [tsconfig.app.json](../../expenses-ui/tsconfig.app.json) | Ferramentas presentes e lacunas de tipagem/testes, sem presumir adoção futura. |

@@ -12,7 +12,8 @@ Aplicação: C#/.NET 10, ASP.NET Core, EF Core 10 e Npgsql/PostgreSQL 17. As reg
 | `Expenses.Application` | Casos de uso, coordenação, validação de entrada, portas e resultados de aplicação. | Domain. |
 | `Expenses.Infrastructure` | EF Core, consultas, persistência e adaptadores de serviços externos. | Domain; Application quando implementar uma porta definida nela. |
 | `Expenses.Api` | Contratos HTTP, controllers, autenticação, tradução de erros e composição. | Application; Infrastructure no registro/configuração de dependências. |
-| `Expenses.Test` | Testes de comportamento, contratos HTTP e integração. | Projetos necessários ao cenário. |
+| `Expenses.UnitTests` | Somente testes unitários isolados. | Unidades sob teste. |
+| `expenses-tests` (projeto irmão) | Integrações, contratos HTTP, banco, navegador, carga e segurança. | Projetos necessários ao cenário. |
 
 Atualmente Infrastructure referencia apenas Domain. Uma futura referência a Application só deve ser introduzida para implementar seus contratos, sem criar dependência inversa. Application e Domain NÃO DEVEM conhecer a infraestrutura. Essa direção segue a [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).
 
@@ -76,7 +77,7 @@ O diagnóstico atual usa `OrderBy(Id)`, `Skip/Take`, página inicial 1, tamanho 
 
 Uma chamada a `SaveChanges` é transacional quando o provider oferece suporte. Se o caso de uso precisar proteger leituras, múltiplas gravações ou locks, delimitar uma transação explícita. Repositórios participantes não devem confirmar pedaços independentes de um mesmo caso de uso. `DbContext` já fornece a base da unidade de trabalho; uma interface adicional é opcional. Referência: [transações no EF Core](https://learn.microsoft.com/en-us/ef/core/saving/transactions).
 
-Manter transações curtas. Não manter locks enquanto espera interação do usuário ou chama o Cognito. A transação PostgreSQL não inclui o fornecedor externo; seguir a compensação e reconciliação especificadas no [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao.md).
+Manter transações curtas. Não manter locks enquanto espera interação do usuário ou chama o Cognito. A transação PostgreSQL não inclui o fornecedor externo; seguir a compensação e reconciliação especificadas no [FDD de identidade](../fdd/FDD-Criacao-Usuario-Autenticacao/FDD-Criacao-Usuario-Autenticacao.md).
 
 ## 5. Concorrência, idempotência e histórico financeiro
 
@@ -136,6 +137,8 @@ Aplicar o [padrão de observabilidade](OBSERVABILIDADE.md): eventos JSON catalog
 
 ## 10. Testes e checklist
 
+Desde 2026-10-08, manter somente unitários no backend/frontend. Testes não unitários ficam em [expenses-tests](../../expenses-tests/README.md).
+
 | Nível | O que verificar |
 | --- | --- |
 | Unidade | Regras de cálculo/estado, validação, mapeamento, limites e expiração; dependências externas substituídas por portas. |
@@ -149,7 +152,7 @@ Comandos existentes, a partir de `expenses-service/`:
 ```bash
 dotnet build Expenses.sln
 dotnet test Expenses.sln --no-build
-python3 scripts/test-postgres.py
+python3 ../expenses-infrastructure/scripts/test-postgres.py
 ```
 
 O último comando exige Docker Desktop/PostgreSQL e Liquibase; cria e remove um banco isolado. Sem essa execução, testes PostgreSQL podem estar ignorados: não declarar integração completa apenas porque a suíte sem banco passou.

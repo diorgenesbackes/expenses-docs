@@ -18,7 +18,7 @@ Este documento reúne requisitos confirmados, estruturas propostas e lacunas. Os
 | --- | --- |
 | [PRD v1.0, 2026-05-30](../PRD.md) | Escopo, RF-01 a RF-20, regras de negócio e critérios de aceite. |
 | [HLD v1.1, 2026-10-01](../HLD.md) | Arquitetura vigente, schemas, entidades, transações, concorrência e exclusão. |
-| [FDD de criação de usuário e autenticação v1.0](../fdd/FDD-Criacao-Usuario-Autenticacao.md) | Perfil interno, Cognito, idempotência, bloqueio de login e reconciliação. |
+| [FDD de criação de usuário e autenticação v1.0](../fdd/FDD-Criacao-Usuario-Autenticacao/FDD-Criacao-Usuario-Autenticacao.md) | Perfil interno, Cognito, idempotência, bloqueio de login e reconciliação. |
 | [README da POC](../../extras/README.md) | Comportamento anterior, dados históricos e persistência em Excel. |
 | [Análise C4](../../extras/c4/criacao-usuario-autenticacao-c4.md) e diagramas [C1](../../extras/c4/criacao-usuario-autenticacao-c1.puml), [C2](../../extras/c4/criacao-usuario-autenticacao-c2.puml), [C3](../../extras/c4/criacao-usuario-autenticacao-c3.puml), [C4](../../extras/c4/criacao-usuario-autenticacao-c4.puml) | Detalhes complementares da identidade; topologia anterior ao HLD vigente. |
 | [Prompt C4](../../extras/06-c4-gernerator.md) e [comando C4](../../extras/07-c4-command.md) | Materiais de geração de documentação; não acrescentam requisitos de negócio. |

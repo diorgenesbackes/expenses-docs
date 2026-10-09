@@ -1,0 +1,17 @@
+{
+  "measuredAtUtc": "2026-10-07T19:49:19.167925Z",
+  "environment": "TestServer \u002B local PostgreSQL \u002B real Cognito us-east-1",
+  "samplesPerOperation": 1,
+  "durationsMs": {
+    "register": 1216.1111,
+    "csrf": 2.7851,
+    "login": 1255.372,
+    "current": 11.1904,
+    "refresh": 341.1312,
+    "authorize": 2.82,
+    "logout": 315.2454,
+    "revoked": 3.6808
+  },
+  "targetMs": 150,
+  "limitation": "Functional smoke timings only; not p95 or production homologation. Login includes cold JWT metadata retrieval."
+}

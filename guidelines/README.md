@@ -54,14 +54,14 @@ PRD/FDD definem comportamento de produto; o HLD define a arquitetura vigente; o 
 | --- | --- | --- |
 | Separação backend | API, Application, Domain e Infrastructure; DTOs HTTP e mapper ainda no Domain. | Novos contratos específicos de HTTP na API; modelos de casos de uso em Application, sem mudança incompatível dos existentes. |
 | Acesso ao banco | EF Core scoped, leitura sem tracking, paginação limitada e cancelamento. | Reproduzir esses cuidados nas consultas novas; escritas exigirão transação, autorização e controle de concorrência. |
-| Autenticação | Integração Cognito e sessão descritas nos documentos, ainda não implementadas. | Implementar autenticação, autorização por recurso e CSRF antes de publicar dados de negócio protegidos. |
+| Autenticação | Cognito, sessão persistente, CSRF e revogação implementados; operação real exige configuração privada e HTTPS. | Implementar autenticação, autorização por recurso e CSRF antes de publicar dados de negócio protegidos. |
 | Diagnóstico de usuários | Disponível apenas em Development. | Manter a restrição; qualquer publicação exige contrato e política de acesso próprios. |
 | Contratos HTTP | Paginação e Problem Details existentes; formatos do FDD ainda exigem compatibilização. | Aplicar o catálogo de erros, padronizar headers e manter as exceções documentadas no guia de APIs. |
 | Observabilidade | Logs pontuais e health checks; `traceId` do handler usa o ID local do request. | Correlacionar Activity/headers/logs, configurar JSON e exportação, depois validar métricas, dashboards e alertas. |
-| Frontend | Template React; sem funcionalidades de negócio. | Organizar por funcionalidades à medida que forem criadas. |
+| Frontend | Login, cadastro, consulta de sessão e saída implementados em Identity. | Organizar por funcionalidades à medida que forem criadas. |
 | TypeScript | `strict` ausente nos tsconfigs da aplicação e das ferramentas. | Habilitar tipagem estrita em mudança dedicada e corrigir os erros encontrados. |
-| Testes frontend | Sem runner ou suíte configurados. | Selecionar e configurar ferramentas junto da primeira funcionalidade testável. |
-| Proxy local | `/api/` disponível no Nginx; Vite sem proxy. | Configurar o proxy do Vite ao implementar a primeira integração com a API. |
+| Testes frontend | Vitest/React Testing Library para unidades; Playwright no projeto separado expenses-tests. | Adicionar casos junto das funcionalidades; jornadas de autenticação no laboratório HTTPS em expenses-tests. |
+| Proxy local | `/api/` disponível no Nginx e Vite; Vite aceita certificados por configuração local. | Concluir HTTPS e configuração privada do ambiente habitual antes do login real. |
 | Migrações | Oito changesets da sprint-1 e validação isolada. | Preservar o histórico e adaptar as verificações de contagem/rollback quando novas migrações forem adicionadas. |
 | Automação | Scripts locais de build, lint e testes. | Integrar os checks aplicáveis à CI; este trabalho não criou um pipeline. |
 | Git Flow | Nesta análise, a pasta ainda não é um repositório Git inicializado. | Adotar `main`/`hlg`/`dev`, promoção seletiva por história, proteções e rastreabilidade conforme o guia; configurar o remoto em tarefa própria. |
@@ -82,3 +82,7 @@ Não exigir testes novos para uma simples correção textual ou mudança sem com
 ## Manutenção
 
 Atualizar estes documentos quando houver mudança de versão principal, arquitetura, contrato transversal ou descoberta operacional relevante. Uma regra nova deve incluir motivação e forma de verificação. Evitar repetir comandos operacionais extensos: os READMEs de cada projeto continuam sendo a referência de execução.
+
+## Organização da documentação e aceite
+
+Novos registros seguem a [estrutura por FDD e etapas numeradas](../README.md#padrão-de-histórico-por-fdd). Planos e execuções de testes ficam em ciclos datados e seguem o [padrão estrutural e Definition of Done](../testing/README.md). Preservar evidências históricas e distinguir entrega parcial de conclusão da FDD.

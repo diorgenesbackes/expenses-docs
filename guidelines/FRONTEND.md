@@ -2,7 +2,7 @@
 
 [Índice](README.md) · [Princípios comuns](PRINCIPIOS.md) · [Execução do frontend](../../expenses-ui/README.md)
 
-Aplicação: React 19, TypeScript 6, Vite 8 e Oxlint. O frontend atual ainda é o template inicial, sem autenticação, roteamento de negócio, biblioteca de formulários, cache de consultas ou suíte de testes. As estruturas e ferramentas sugeridas abaixo são propostas de adoção incremental.
+Aplicação: React 19, TypeScript 6, Vite 8 e Oxlint. Desde 2026-10-08, o frontend contém login, cadastro e identidade/saída, com navegação nativa e transporte HTTP do módulo Identity. Não há biblioteca de formulários nem cache de consultas. Possui Vitest/React Testing Library para testes unitários desde 2026-10-08. As estruturas e ferramentas sugeridas abaixo são propostas de adoção incremental.
 
 ## 1. Organização por funcionalidade
 
@@ -129,7 +129,7 @@ Toda tela remota DEVE tratar carregamento, vazio, erro e sucesso; operações de
 
 ## 9. Segurança, sessão e configuração
 
-O HLD/FDD prevê Cognito acessado pelo backend e cookies `HttpOnly`, `Secure` e `SameSite`. Tokens de sessão não devem ficar em `localStorage`, `sessionStorage`, URLs ou logs. No futuro fluxo, JavaScript lê o estado permitido da sessão por endpoint; não precisa ler o token. Referência: [OWASP — Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
+O HLD/FDD prevê Cognito acessado pelo backend e cookies `HttpOnly`, `Secure` e `SameSite`. Tokens de sessão não devem ficar em `localStorage`, `sessionStorage`, URLs ou logs. No fluxo implementado, JavaScript lê o estado permitido da sessão por endpoint; não precisa ler o token. Referência: [OWASP — Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
 
 CSRF deve ser resolvido junto do backend para requisições autenticadas por cookie. SameSite é uma camada de defesa, não uma solução universal. Definir token/verificação de origem e comportamento de credenciais conforme os domínios usados. Referência: [OWASP — CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
 
@@ -159,7 +159,7 @@ npm run lint
 npm run build
 ```
 
-Não existe `npm test` configurado atualmente. Adicionar scripts e instruções junto da adoção do runner; não descrever comandos futuros como checks disponíveis.
+`npm test` executa somente testes unitários com Vitest/React Testing Library. Jornadas Playwright ficam no projeto irmão `expenses-tests`. As telas de autenticação ainda precisam ser implementadas antes de testar suas jornadas visuais.
 
 - [ ] Componentes coesos, renderização pura e estado com proprietário claro.
 - [ ] Tipos e validação das fronteiras tratados sem assertions que ocultem erro.

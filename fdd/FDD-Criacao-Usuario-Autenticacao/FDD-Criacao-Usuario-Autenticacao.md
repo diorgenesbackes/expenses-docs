@@ -1,8 +1,14 @@
 ### FDD: Criação de usuário e autenticação
 
-Versão: 1.0
-Data: 2026-06-03
+[1 — Planejamento](1-planejamento.md) · [2 — Desenvolvimento](2-desenvolvimento.md) · [3 — Testes](3-testes.md) · [4 — Operação](4-operacao.md)
+
+Versão: 1.2
+Data: 2026-10-07
 Responsável: Diórgenes Backes
+
+Estado: cadastro E2 e login/sessões E3/E4 implementados no backend; interface e homologação ainda pendentes.
+Contrato operacional de sessões, CSRF, cookies e concorrência: [E3/E4](2-desenvolvimento.md#login-e-sessoes-e3-e4).
+Decisões aprovadas: UUID, bloqueio exclusivamente por e-mail, encerramento em qualquer falha de renovação, revogação imediata na API e p95 < 150 ms em todas as operações. A [entrega E2](2-desenvolvimento.md#cadastro-e2) registra evidências e limites; o desempenho local medido não atende à meta.
 
 ---
 
@@ -41,8 +47,7 @@ Suposições e restrições:
 - Refresh token expira em `7 dias`.
 - Tokens são mantidos apenas em cookies `HttpOnly`, `Secure` e `SameSite`.
 - O Cognito é acessado somente pelo `Identity Service`.
-- A latência esperada dos endpoints frequentes segue o HLD: `p95 < 150 ms`,
-  desconsiderando degradações transitórias de serviços gerenciados.
+- A meta aprovada é `p95 < 150 ms` em todas as operações, incluindo dependências externas; carga, ambiente e ponto de medição devem acompanhar a evidência.
 
 ---
 
@@ -52,7 +57,7 @@ Suposições e restrições:
 - Autenticar usuários sem expor tokens ao JavaScript do frontend.
 - Manter sessão com access token de `15 minutos` e refresh token de `7 dias` em
   cookies seguros.
-- Revogar tokens no Cognito durante logout sempre que possível.
+- Invalidar imediatamente a sessão na API por registro persistente; tentar também revogar tokens no Cognito. Falha na persistência local impede confirmar o logout.
 - Validar sessão atual e renovar access token quando o refresh token ainda for
   válido.
 - Limitar brute force com bloqueio temporário após `10` tentativas inválidas de
@@ -113,22 +118,22 @@ Suposições e restrições:
 - Se o access token estiver expirado e o refresh token válido, o
   `Identity Service` renova a sessão e atualiza os cookies.
 - Ao realizar logout, o frontend chama `DELETE /v1/identity/sessions/current`.
-- O `Identity Service` revoga tokens no Cognito quando possível e limpa cookies.
+- O `Identity Service` confirma revogação local persistente, tenta revogar tokens no Cognito e limpa cookies.
 
 **Fluxos alternativos e exceções**
 - Se o usuário optar por lembrar e-mail, o frontend armazena somente o e-mail
   no dispositivo ou navegador.
 - Se o cadastro no Cognito tiver sucesso e a persistência do perfil falhar, o
-  `Identity Service` tenta remover o usuário recém-criado no Cognito.
+  `Identity Service` só tenta remover o principal comprovado antes de commit ambíguo; caso contrário preserva a conta para reconciliação.
 - Se a remoção compensatória falhar, o sistema registra evento de reconciliação
   sem expor dados sensíveis.
-- Se o login for inválido, o contador de tentativas por `emailHash` e `ipHash` é
+- Se o login for inválido, o contador de tentativas apenas por `emailHash` é
   incrementado.
 - Nas `3` últimas tentativas antes do bloqueio, a resposta informa tentativas
   restantes.
 - Após `10` tentativas inválidas em `15 minutos`, o login é bloqueado por `15
   minutos`.
-- Se a sessão não puder ser renovada, o sistema limpa cookies e retorna `401`.
+- Se a sessão não puder ser renovada, o sistema encerra a sessão e limpa cookies: `401` para credencial inválida, `503` para indisponibilidade.
 - Se o logout não conseguir revogar tokens no Cognito, o sistema limpa cookies e
   registra falha operacional para investigação.
 
@@ -154,9 +159,13 @@ Suposições e restrições:
   - `400 Bad Request`: payload inválido.
   - `409 Conflict`: e-mail já cadastrado.
   - `422 Unprocessable Entity`: senha não atende à política mínima.
-  - `500 Internal Server Error`: falha interna ou falha de reconciliação.
+  - `500 Internal Server Error`: falha interna sanitizada.
+  - `503 Service Unavailable`: dependência indisponível ou resultado incerto que exige reconciliação.
+  - `413` para corpo acima de 8 KB; `415` para Content-Type incompatível; `403` para origem não permitida.
   - `X-Correlation-Id`: identificador de correlação da requisição.
-  - `Idempotency-Key`: recomendado para evitar criação duplicada em retries.
+  - `Idempotency-Key`: UUID opcional e recomendado. Mesma chave/e-mail recupera resultado por 24 horas da reserva; não altera senha. Mesma chave/outro e-mail, chave expirada ou operação em execução: `409`. Nova chave/e-mail existente: `409`. Operação incerta não é reexecutada nem descartada por expiração: `503`.
+  - E-mail ASCII normalizado com até 128 caracteres; senha de 8 a 256 caracteres com letra e algarismo ASCII, sem espaços/controles. Senha não é normalizada nem persistida.
+  - JSON rejeita propriedades desconhecidas. `Cache-Control: no-store` em sucesso/erro; erros ProblemDetails contêm `code`, `traceId` W3C e `correlationId` UUID. Cadastro não inicia sessão nem retorna Location.
 
 **Exemplo de requisição**
 ```json
@@ -172,7 +181,7 @@ Suposições e restrições:
 ```json
 {
   "user": {
-    "id": "usr_01HX0000000000000000000000",
+    "id": "1a44c92b-6af1-4e8d-913f-6372937bdf10",
     "email": "usuario@exemplo.com",
     "createdAt": "2026-06-03T12:00:00Z"
   }
@@ -189,6 +198,7 @@ Suposições e restrições:
   - `401 Unauthorized`: credenciais inválidas.
   - `423 Locked`: login bloqueado temporariamente por excesso de tentativas.
   - `503 Service Unavailable`: Cognito indisponível ou timeout de autenticação.
+  - `X-CSRF-Token`: obrigatório, obtido em `GET /v1/identity/csrf` junto do cookie CSRF.
   - `Set-Cookie`: grava cookies `cc_at` e `cc_rt` com `HttpOnly`, `Secure` e
     `SameSite`.
   - `X-Correlation-Id`: identificador de correlação da requisição.
@@ -207,7 +217,7 @@ Suposições e restrições:
 ```json
 {
   "user": {
-    "id": "usr_01HX0000000000000000000000",
+    "id": "1a44c92b-6af1-4e8d-913f-6372937bdf10",
     "email": "usuario@exemplo.com"
   },
   "session": {
@@ -223,10 +233,10 @@ Suposições e restrições:
 - Assinatura/Rota: `DELETE /v1/identity/sessions/current`
 - Método: `DELETE`
 - Semântica de status/headers:
-  - `204 No Content`: cookies removidos e revogação no Cognito executada ou
-    tentada.
+  - `204 No Content`: revogação local confirmada, cookies removidos e revogação no Cognito executada ou tentada. Novas validações rejeitam a sessão imediatamente; requisições já autorizadas terão semântica definida em E4.
   - `401 Unauthorized`: sessão ausente ou inválida.
-  - `500 Internal Server Error`: falha interna sem garantia de revogação remota.
+  - `500 Internal Server Error`: falha interna; `503` se não for possível confirmar revogação local por indisponibilidade. Não confirmar logout sem revogação local.
+  - `X-CSRF-Token`: obrigatório, junto do cookie CSRF.
   - `Set-Cookie`: expira cookies `cc_at` e `cc_rt`.
   - `X-Correlation-Id`: identificador de correlação da requisição.
 
@@ -236,11 +246,7 @@ Suposições e restrições:
 
 ```
 
-**Exemplo de resposta**
-
-```json
-{}
-```
+**Resposta:** `204` sem corpo.
 
 **Consultar sessão atual**
 - Tipo: endpoint
@@ -251,6 +257,8 @@ Suposições e restrições:
   - `401 Unauthorized`: sessão ausente, expirada ou não renovável.
   - `503 Service Unavailable`: Cognito indisponível durante tentativa de
     renovação.
+  - `X-CSRF-Token`: obrigatório também no GET que pode renovar sessão.
+  - `409 Conflict`: outra renovação está em andamento; não limpar cookies.
   - `Set-Cookie`: pode atualizar `cc_at` quando houver renovação.
   - `X-Correlation-Id`: identificador de correlação da requisição.
 
@@ -265,7 +273,7 @@ Suposições e restrições:
 ```json
 {
   "user": {
-    "id": "usr_01HX0000000000000000000000",
+    "id": "1a44c92b-6af1-4e8d-913f-6372937bdf10",
     "email": "usuario@exemplo.com"
   },
   "session": {
@@ -277,13 +285,12 @@ Suposições e restrições:
 ```
 
 Limites aplicáveis aos contratos:
-- Login: até `10` tentativas inválidas em `15 minutos` por `emailHash` e
-  `ipHash`.
+- Login: até `10` tentativas inválidas em `15 minutos` apenas por `emailHash`.
 - Bloqueio de login: `15 minutos`.
 - Tamanho máximo de payload: `8 KB`.
 - Timeout interno para chamadas ao Cognito: `3 segundos`.
 - Orçamento máximo de processamento por endpoint: `5 segundos`.
-- Latência operacional esperada: `p95 < 150 ms` para operações frequentes.
+- Latência operacional esperada: `p95 < 150 ms` para todas as operações.
 - Versionamento: rotas sob `/v1`; mudanças incompatíveis exigem nova versão.
 
 ---
@@ -303,14 +310,10 @@ Limites aplicáveis aos contratos:
   - Access token expirado com refresh inválido: limpar cookies e retornar `401`.
   - Cognito indisponível: retornar `503`, registrar erro operacional e não
     executar fallback inseguro.
-  - Perfil interno ausente após autenticação válida: tentar sincronização
-    idempotente a partir do `cognitoSub`; se falhar, retornar `503` e registrar
-    evento de reconciliação.
-  - Falha na persistência do perfil após criação no Cognito: tentar remover o
-    usuário no Cognito; se falhar, registrar reconciliação.
+  - Perfil interno ausente após autenticação válida: retornar `503` e registrar reconciliação por `cognitoSub`; não vincular conta por e-mail nem criar perfil implicitamente.
+  - Falha na persistência do perfil após criação no Cognito: compensar somente principal comprovadamente criado pela operação e antes de commit ambíguo; caso contrário registrar reconciliação e não excluir a conta.
 
-- Estratégias de resiliência: timeouts, retries controlados, backoff
-  exponencial para falhas transitórias e sem circuit breaker dedicado no MVP.
+- Estratégias de resiliência do cadastro: sem retries automáticos; três segundos por chamada Cognito e orçamento de cinco segundos do caso de uso após leitura HTTP. Recuperação por idempotência e reconciliação explícita; sem filas/jobs ou circuit breaker dedicado.
 - Política de fallback
 - Não autenticar usuário sem validação bem-sucedida pelo Cognito.
   - Não criar perfil interno sem usuário correspondente no Cognito.
@@ -422,7 +425,7 @@ Limites aplicáveis aos contratos:
   emitidas.
 - Spans de tracing são gerados para request, rate limit, Cognito, persistência e
   escrita de cookie.
-- A feature atende `p95 < 150 ms` para operações frequentes em condições normais
+- A feature atende `p95 < 150 ms` para todas as operações em condições normais
   de operação.
 
 ---
@@ -449,7 +452,7 @@ Limites aplicáveis aos contratos:
 - **Mitigação:**
     - Limitar login a `10` tentativas inválidas em `15 minutos`.
     - Bloquear novas tentativas por `15 minutos`.
-    - Usar `emailHash` e `ipHash` para controle sem expor dados sensíveis.
+    - Usar HMAC do e-mail normalizado para controle sem expor dados sensíveis.
     - Alertar sobre aumento anormal de falhas e bloqueios.
 - **Plano de contingência:** elevar regras de proteção na borda e endurecer a
   política de bloqueio temporariamente.
@@ -462,7 +465,7 @@ Limites aplicáveis aos contratos:
 - **Mitigação:**
     - Criar perfil interno logo após criação no Cognito.
     - Usar idempotência no cadastro.
-    - Executar remoção compensatória no Cognito quando a persistência falhar.
+    - Compensar somente principal comprovado, nunca após commit ambíguo.
     - Registrar evento de reconciliação quando a compensação falhar.
 - **Plano de contingência:** bloquear acesso do usuário divergente e executar
   reconciliação operacional.

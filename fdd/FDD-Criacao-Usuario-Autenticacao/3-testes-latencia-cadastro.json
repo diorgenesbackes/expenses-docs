@@ -1,0 +1,33 @@
+{
+  "measuredAtUtc": "2026-10-07T19:06:15.932031Z",
+  "environment": "Local .NET in-process HTTP host \u002B local PostgreSQL \u002B Cognito us-east-1",
+  "operation": "POST /v1/identity/users",
+  "concurrency": 1,
+  "samples": 20,
+  "durationsMs": [
+    1202.9589,
+    1141.7048,
+    1163.8986,
+    1140.9372,
+    1136.4562,
+    1087.1419,
+    1081.571,
+    1071.5775,
+    1015.46,
+    1014.4823,
+    1222.6297,
+    1094.9371,
+    953.5652,
+    1043.6558,
+    1029.9497,
+    996.2215,
+    1089.4481,
+    1109.5648,
+    1025.1807,
+    968.6832
+  ],
+  "p95Ms": 1202.9589,
+  "targetMs": 150,
+  "targetMetInThisSample": false,
+  "limitation": "Exploratory local sample, excludes external ingress/TLS and is not production homologation. Provider credentials warmed by preflight."
+}

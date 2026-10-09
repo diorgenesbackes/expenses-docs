@@ -195,7 +195,7 @@ Executar checks sobre a revisão avaliada e também sobre o resultado integrado 
 
 | Área alterada | Validação |
 | --- | --- |
-| Backend | Em `expenses-service/`: `dotnet build Expenses.sln`, `dotnet test Expenses.sln --no-build`; PostgreSQL real via `python3 scripts/test-postgres.py` quando houver impacto no acesso/integridade. |
+| Backend | Em `expenses-service/`: `dotnet build Expenses.sln`, `dotnet test Expenses.sln --no-build`; PostgreSQL real via `python3 ../expenses-infrastructure/scripts/test-postgres.py` quando houver impacto no acesso/integridade. |
 | Frontend | Em `expenses-ui/`: `npm ci`, `npm run lint`, `npm run build`; testes funcionais quando a suíte for adotada. |
 | Liquibase | Em `expenses-liquibase/`: `python3 tests/validate_schema.py`, atualizado para a entrega; verificar instalação limpa e upgrade com dados. |
 | Infraestrutura | Validar Compose e build dos componentes afetados conforme seu README; conferir portas, volumes e health sem alterar dados compartilhados. |
